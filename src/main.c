@@ -15,8 +15,9 @@ int main(void) {
 
     int debug = 1;
     meshinfo minf;
+    solverinfo sinf;
 
-    parseinput(&minf, debug);
+    parseinput(&minf, &sinf, debug);
 
     int *ien = (int *)malloc(minf.ne*minf.nen*sizeof(int));
     int *rng = (int *)malloc(minf.ne*minf.nen*sizeof(int));

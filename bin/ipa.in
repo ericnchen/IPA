@@ -4,3 +4,7 @@ nn 11
 nen 2
 nsd 1
 ndf 1
+
+# Solver Settings
+element linear
+formulation galerkin

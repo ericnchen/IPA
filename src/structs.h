@@ -5,3 +5,8 @@
 typedef struct {
     int ne, nn, nen, nsd, ndf;
 } meshinfo;
+
+typedef struct {
+    char element[256];
+    char formulation[256];
+} solverinfo;

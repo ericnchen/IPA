@@ -11,7 +11,7 @@
 #include <errno.h>
 #include "structs.h"
 
-void parseinput(meshinfo *minf, int debug) {
+void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
 
     FILE *pFile;
     pFile = fopen("ipa.in", "r");
@@ -38,6 +38,13 @@ void parseinput(meshinfo *minf, int debug) {
             } else if (!strcmp(key, "ndf")) {
                 minf->ndf = atoi(val);
 
+            /** Solver Settings
+             */
+            } else if (!strcmp(key, "element")) {
+                strncpy(sinf->element, val, 255);
+            } else if (!strcmp(key, "formulation")) {
+                strncpy(sinf->formulation, val, 255);
+
             /** Catch-All
              */
             } else if (!strcmp(key, "\n")) {
@@ -56,9 +63,3 @@ void parseinput(meshinfo *minf, int debug) {
 
     fclose(pFile);
 }
-
-/*
-            // Example: String
-            } else if (!strcmp(key, "a_string")) {
-                //strncpy(a_string, val, sizeof(a_string)-1);
-*/
