@@ -97,15 +97,19 @@ double gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
     }
 
     // deallocate
+    for (int i = 0; i < rows; i++) {
+        free(rm[i]);
+//        free(h[i]);
+    }
+//    free(rm);
     free(r);
     free(ax0);
     free(v);
     free(g);
     free(h);
-    free(rm);
     free(c);
     free(s);
-    free(irg);
+//    free(irg);
 
     return rho;
 }
