@@ -10,7 +10,7 @@
 #include "structs.h"
 
 void lineargal1d(meshinfo minf, fluidinfo finf,
-                 double *aval, int *aind, int *aptr) {
+                 double *aval, int *aind, int *aptr, double *bvec) {
 
     aptr[0] = 0;
     aptr[1] = 2;
@@ -42,4 +42,21 @@ void lineargal1d(meshinfo minf, fluidinfo finf,
         aval[aptr[i+1]+1] = valdiag;
         aval[aptr[i+1]+2] = valupper;
     }
+
+    bvec[0] = h/2;
+    bvec[minf.nn-1] = h/2;
+    for (int i = 1; i < minf.nn-1; i++) {
+        bvec[i] = h;
+    }
+
+    /* In the future I want to parse the boundary condition settings, but
+       for now this will be hard-coded. I leave the math above untouched
+       for easier reference later on so I remember what I did. */
+    aval[0] = 1.0;
+    aval[1] = 0.0;
+    aval[(minf.nn-2)*3+(2)*2-2] = 0.0;
+    aval[(minf.nn-2)*3+(2)*2-1] = 1.0;
+    bvec[0] = 0.0;
+    bvec[minf.nn-1] = 0.0;
+
 }

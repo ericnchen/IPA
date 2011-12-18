@@ -37,21 +37,21 @@ int main(void) {
     /** Formulate System
      */
     // I'll probably have to change this malloc somehow when I add quadratic
-    // elements, and who knows what I'll have to do when I add SUPG.
+    // elements, and who knows what I'll have to do when I add SUPG. Look
+    // into realloc() for that.
+    double *bvec = malloc(minf.nn*sizeof(double));
     double *aval = malloc(((minf.nn-2)*3+(2)*2)*sizeof(double));
     int *aind = malloc(((minf.nn-2)*3+(2)*2)*sizeof(int));
     int *aptr = malloc(minf.nn*sizeof(int));
-    if (aval == NULL || aind == NULL || aptr == NULL) {
+    if (aval == NULL || aind == NULL || aptr == NULL || bvec == NULL) {
         fprintf(stderr, "(-) Could not allocate memory for gensystem.\n");
     } else {
-        gensystem(minf, finf, sinf, aval, aind, aptr, debug);
+        gensystem(minf, finf, sinf, aval, aind, aptr, bvec, debug);
     }
 
-    /*
-    for (int i = 0; i < (minf.nn-2)*3+4; i++) {
-        printf("%f\n", aval[i]);
+    for (int i = 0; i < minf.nn; i++) {
+        printf("%f\n", bvec[i]);
     }
-    */
 
     /** Cleanup
      */
@@ -61,5 +61,6 @@ int main(void) {
     free(aval);
     free(aind);
     free(aptr);
+    free(bvec);
     return EXIT_SUCCESS;
 }
