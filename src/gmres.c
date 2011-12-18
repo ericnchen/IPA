@@ -1,0 +1,6 @@
+/**
+ * gmres.c
+ */
+
+double dotprod() {
+}
