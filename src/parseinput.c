@@ -34,7 +34,12 @@ void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
             } else if (!strcmp(key, "nen")) {
                 minf->nen = atoi(val);
             } else if (!strcmp(key, "nsd")) {
-                minf->nsd = atoi(val);
+                if (atoi(val) != 1) {
+                    fprintf(stderr, "(-) Only 1D is supported.\n");
+                    exit(EIO);
+                } else {
+                    minf->nsd = atoi(val);
+                }
             } else if (!strcmp(key, "ndf")) {
                 minf->ndf = atoi(val);
 

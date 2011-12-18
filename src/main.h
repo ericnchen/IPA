@@ -4,3 +4,4 @@
 
 void parseinput();
 void genmesh();
+void gensystem();

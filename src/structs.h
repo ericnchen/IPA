@@ -10,3 +10,8 @@ typedef struct {
     char element[256];
     char formulation[256];
 } solverinfo;
+
+typedef struct {
+    double a;
+    double nu;
+} fluidinfo;
