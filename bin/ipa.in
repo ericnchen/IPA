@@ -10,5 +10,5 @@ element linear
 formulation galerkin
 
 # Fluid Properties
-convective_velocity
-viscosity
+convective_velocity 1.0
+viscosity 0.01

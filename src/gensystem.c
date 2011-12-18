@@ -10,7 +10,7 @@
 #include "assemble.h"
 
 void gensystem(meshinfo minf, fluidinfo finf, solverinfo sinf,
-               int *aind, int *aptr, int debug) {
+               double *aval, int *aind, int *aptr, int debug) {
 
     /** Choose the proper system to assemble.
      */
@@ -18,7 +18,7 @@ void gensystem(meshinfo minf, fluidinfo finf, solverinfo sinf,
         if (debug) fprintf(stdout, "(+) Assembling 1D system...\n");
         if (!strcmp(sinf.element, "linear") &&
             !strcmp(sinf.formulation, "galerkin")) {
-            lineargal1d(minf, finf, aind, aptr);
+            lineargal1d(minf, finf, aval, aind, aptr);
         } else if (!strcmp(sinf.element, "linear") &&
                    !strcmp(sinf.formulation, "supg")) {
         } else if (!strcmp(sinf.element, "quadratic") &&

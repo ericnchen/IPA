@@ -14,8 +14,7 @@ void genmesh(meshinfo minf, double *xyz, int *ien, int *rng, int debug) {
 
     if (debug) fprintf(stdout, "(+) Creating 1D mesh...\n");
 
-    double h;
-    h = 1.0/minf.ne;
+    double h = 1.0/minf.ne;
 
     for (int i = 0; i < minf.nn; i++) {
         xyz[i] = i*h;
