@@ -8,6 +8,7 @@ ndf 1
 # Solver Settings
 element linear
 formulation galerkin
+method gmres
 
 # Fluid Properties
 convective_velocity 1.0
