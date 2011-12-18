@@ -7,15 +7,21 @@
  * important.
  */
 
+#include <stdio.h>
 #include "structs.h"
+#include "gmres.h"
 
-void solvesystem(solverinfo sinf) {
+void solvesystem(meshinfo minf, solverinfo sinf,
+                 double *aval, int *aind, int *aptr,
+                 double *bvec, double *xvec, int debug) {
 
-//    double eps = 1e-08;
-//    double rho = 1.0;
+    if (debug) fprintf(stdout, "(+) Solving the system...\n");
 
-//    do {
-//        rho = gmres();
-//    } while (rho > eps);
+    double eps = 1e-08;
+    double rho = 1.0;
+
+    do {
+        rho = gmres(aval, aind, aptr, minf.nn, (minf.nn-2)*3+4, bvec, xvec);
+    } while (rho > eps);
 
 }

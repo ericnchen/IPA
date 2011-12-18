@@ -53,7 +53,8 @@ int main(int argc, char *argv[]) {
      * For now, only GMRES. Eventually, there will be preconditioning, and
      * maybe other iterative solve methods like BiCGSTAB or what have you.
      */
-    solvesystem(sinf);
+    double *xvec = malloc(minf.nn*sizeof(double));
+    solvesystem(minf, sinf, aval, aind, aptr, bvec, xvec, debug);
 
     /** Cleanup
      */
@@ -64,5 +65,6 @@ int main(int argc, char *argv[]) {
     free(aind);
     free(aptr);
     free(bvec);
+    free(xvec);
     return EXIT_SUCCESS;
 }
