@@ -36,12 +36,19 @@ void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
             } else if (!strcmp(key, "nsd")) {
                 if (atoi(val) != 1) {
                     fprintf(stderr, "(-) Only 1D is supported.\n");
-                    exit(EIO);
+                    exit(errno);
                 } else {
                     minf->nsd = atoi(val);
                 }
             } else if (!strcmp(key, "ndf")) {
                 minf->ndf = atoi(val);
+
+            /** Fluid Properties
+             */
+            } else if (!strcmp(key, "convective_velocity")) {
+                find->a = atof(val);
+            } else if (!strcmp(key, "viscosity")) {
+                find->nu = atof(val);
 
             /** Solver Settings
              */
@@ -58,12 +65,12 @@ void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
                 continue;
             } else {
                 fprintf(stderr, "(-) Unrecognized key in input file.\n");
-                exit(EIO);
+                exit(errno);
             }
         }
     } else {
         fprintf(stderr, "(-) Could not find input file.\n");
-        exit(EIO);
+        exit(errno);
     }
 
     fclose(pFile);

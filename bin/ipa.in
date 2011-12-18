@@ -8,3 +8,7 @@ ndf 1
 # Solver Settings
 element linear
 formulation galerkin
+
+# Fluid Properties
+convective_velocity
+viscosity
