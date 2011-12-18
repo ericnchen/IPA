@@ -1,2 +1,4 @@
 ipa
 obj/*.o
+.DS_Store
+doc
