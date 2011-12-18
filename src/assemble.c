@@ -9,6 +9,8 @@
 #include "assemble.h"
 #include "structs.h"
 
+double mvproduct();
+
 void lineargal1d(meshinfo minf, fluidinfo finf,
                  double *aval, int *aind, int *aptr, double *bvec) {
 
@@ -58,5 +60,4 @@ void lineargal1d(meshinfo minf, fluidinfo finf,
     aval[(minf.nn-2)*3+(2)*2-1] = 1.0;
     bvec[0] = 0.0;
     bvec[minf.nn-1] = 0.0;
-
 }

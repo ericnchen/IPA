@@ -5,3 +5,4 @@
 void parseinput();
 void genmesh();
 void gensystem();
+void solvesystem();

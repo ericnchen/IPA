@@ -57,6 +57,8 @@ void parseinput(meshinfo *minf, fluidinfo *finf, solverinfo *sinf,
                 strncpy(sinf->element, val, 255);
             } else if (!strcmp(key, "formulation")) {
                 strncpy(sinf->formulation, val, 255);
+            } else if (!strcmp(key, "method")) {
+                strncpy(sinf->method, val, 255);
 
             /** Catch-All
              */

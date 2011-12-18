@@ -49,9 +49,11 @@ int main(int argc, char *argv[]) {
         gensystem(minf, finf, sinf, aval, aind, aptr, bvec, debug);
     }
 
-    for (int i = 0; i < minf.nn; i++) {
-        printf("%f\n", bvec[i]);
-    }
+    /** Solve System
+     * For now, only GMRES. Eventually, there will be preconditioning, and
+     * maybe other iterative solve methods like BiCGSTAB or what have you.
+     */
+    solvesystem(sinf);
 
     /** Cleanup
      */

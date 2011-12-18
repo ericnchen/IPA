@@ -9,6 +9,7 @@ typedef struct {
 typedef struct {
     char element[256];
     char formulation[256];
+    char method[256];
 } solverinfo;
 
 typedef struct {
