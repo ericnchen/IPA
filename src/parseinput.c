@@ -11,7 +11,8 @@
 #include <errno.h>
 #include "structs.h"
 
-void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
+void parseinput(meshinfo *minf, fluidinfo *finf, solverinfo *sinf,
+                int debug) {
 
     FILE *pFile;
     pFile = fopen("ipa.in", "r");
@@ -46,9 +47,9 @@ void parseinput(meshinfo *minf, solverinfo *sinf, int debug) {
             /** Fluid Properties
              */
             } else if (!strcmp(key, "convective_velocity")) {
-                find->a = atof(val);
+                finf->a = atof(val);
             } else if (!strcmp(key, "viscosity")) {
-                find->nu = atof(val);
+                finf->nu = atof(val);
 
             /** Solver Settings
              */
