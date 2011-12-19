@@ -16,17 +16,16 @@ void solvesystem(meshinfo minf, solverinfo sinf,
                  double *bvec, double *xvec, int debug) {
 
     for (int i = 0; i < minf.nn; i++) {
-        xvec[i] = 0.0;
+        xvec[i] = 0.0;  // initial guess
     }
 
     if (debug) fprintf(stdout, "(+) Solving the system...\n");
 
-    double eps = 1e-08;
-    double rho = 1.0;
+    // call solver
+    gmres(aval, aind, aptr, minf.nn, (minf.nn-2)*3+4, bvec, xvec);
 
-//    do {
-        rho = gmres(aval, aind, aptr, minf.nn, (minf.nn-2)*3+4, bvec, xvec);
-//        printf("%f\n", rho);
-//    } while (rho > eps);
+for (int i = 0; i < minf.nn; i++) {
+    printf("%d %f\n", i, xvec[i]);
+}
 
 }

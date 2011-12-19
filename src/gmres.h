@@ -2,6 +2,6 @@
  * gmres.h
  */
 
-double gmres();
+void gmres();
 void getkrylov();
 void mvmul();

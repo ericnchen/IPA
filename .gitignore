@@ -1,4 +1,5 @@
 ipa
+ipa.dSYM
 obj/*.o
 .DS_Store
 doc
