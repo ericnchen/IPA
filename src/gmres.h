@@ -3,5 +3,6 @@
  */
 
 void gmres();
-void getkrylov();
 void mvmul();
+double vvdot();
+double norm2();

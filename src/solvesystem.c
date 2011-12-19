@@ -22,10 +22,11 @@ void solvesystem(meshinfo minf, solverinfo sinf,
     if (debug) fprintf(stdout, "(+) Solving the system...\n");
 
     // call solver
-    gmres(aval, aind, aptr, minf.nn, (minf.nn-2)*3+4, bvec, xvec);
+    int nnz = (minf.nn-2)*3+4;
+    gmres(aval, aind, aptr, minf.nn, nnz, bvec, xvec, 1, 10, 0.01);
 
-for (int i = 0; i < minf.nn; i++) {
-    printf("%d %f\n", i, xvec[i]);
-}
+//for (int i = 0; i < minf.nn; i++) {
+//    printf("%d %f\n", i, xvec[i]);
+//}
 
 }

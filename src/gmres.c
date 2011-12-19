@@ -2,219 +2,177 @@
  * gmres.c
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "gmres.h"
 
-#include <stdio.h>
-#include <errno.h>
 
+// solves Ax = b for x
 void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
-           double *bvec, double *xvec) {
+           double *rhs, double *xvec, int max, int m, double tol) {
 
-    // solver parameters
-    int m = 10; // restart
-    double eps = 1e-08; //tolerance
-
-    // r0 = b - Ax0
-    double *r   = malloc(rows*sizeof(double));
+    // allocate things
+    double beta;
+    double tempr, tempsqrt, tempsum;
+    double *r0 = malloc(rows*sizeof(double));
     double *ax0 = malloc(rows*sizeof(double));
-    if (r == NULL || ax0 == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    mvmul(ax0, val, col_ind, row_ptr, rows, nnz, xvec);
-    for (int i = 0; i < rows; i++) {
-        r[i] = bvec[i]-ax0[i];
-    }
-
-    // rho = norm(r)
-    double rho = 0.0;
-    for (int i = 0; i < rows; i++) {
-        rho += r[i]*r[i];
-    }
-    rho = sqrt(rho);
-
-    // v1 = r0/norm(r0)
     double *v = malloc(rows*(m+1)*sizeof(double));
-    if (v == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    double norm = 0.0;
-    for (int i = 0; i < rows; i++) {
-        norm += r[i]*r[i];
-    }
-    norm = sqrt(norm);
-    for (int i = 0; i < rows; i++) {
-        v[i*(m+1)+0] = r[i]/norm;
-    }
-
-    // g = norm(r)*e1
-    double *g = malloc((m+1)*sizeof(double));
-    if (g == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    g[0] = norm;
-    for (int i = 1; i <= m; i++) {
-        g[i] = 0.0;
-    }
-
-    // outer GMRES loop allocation
     double *h = malloc((m+1)*m*sizeof(double));
-    double *rm = malloc((m+1)*m*sizeof(double));
-    if (h == NULL || rm == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    for (int i = 0; i < (m+1)*m; i ++) h[i] = 0.0;
-    double tempout;
-    int j_exit = m;
-
-    // inner GMRES loop allocation
+    double *w = malloc(rows*sizeof(double));
+    double *vtmp = malloc(rows*sizeof(double));
     double *c = malloc(m*sizeof(double));
     double *s = malloc(m*sizeof(double));
-    if (c == NULL || s == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    double tempin;
+    double *r = malloc((m+1)*m*sizeof(double));
+    double *g = malloc((m+1)*sizeof(double));
+    double *irg = malloc(m*sizeof(double));
 
-    // restart GMRES loop
-    while (rho >= eps) {
+    // outer GMRES loop
+    for (int outer = 0; outer < max; outer++) {
 
-        // outer loop
+        // r0 = b - Ax0
+        mvmul(val, col_ind, row_ptr, rows, nnz, xvec, ax0);
+
+        for (int i = 0; i < rows; i++) {
+            r0[i] = rhs[i]-ax0[i];
+        }
+
+        // beta = norm(r0)
+        beta = norm2(r0, rows);
+
+        // v1 = r0/beta
+        for (int i = 0; i < rows; i++) {
+            v[i*(m+1)+0] = r0[i]/beta;
+        }
+
+        // g = norm(r0)*e1
+        memset(g, 0, (m+1)*sizeof(double));
+        g[0] = beta;
+
+        // zero out old values
+        memset(h, 0, (m+1)*m*sizeof(double));
+
+        // inner GMRES loop
         for (int j = 0; j < m; j++) {
-            getkrylov(val, col_ind, row_ptr, rows, nnz, j, v, h, m);
-            rm[0*m+j] = h[0*m+j];
-
-            // inner loop
-            for (int k = 1; k <= j; k++) {
-                tempin = c[k-1]*rm[(k-1)*m+j]+s[k-1]*h[k*m+j];
-                rm[k*m+j] = -s[k-1]*rm[(k-1)*m+j]+c[k-1]*h[k*m+j];
-                rm[(k-1)*m+j] = tempin;
+            
+            // wj = Avj
+            for (int i = 0; i < rows; i++) {
+                vtmp[i] = v[i*(m+1)+j];
             }
-    
-            // steps 8 and 9
-            tempout = rm[j*m+j]*rm[j*m+j]+h[(j+1)*m+j]*h[(j+1)*m+j];
-            tempout = sqrt(tempout);
-            c[j] = rm[j*m+j]/tempout;
-            s[j] = h[(j+1)*m+j]/tempout;
-            rm[j*m+j] = c[j]*rm[j*m+j]+s[j]*h[(j+1)*m+j];
+            mvmul(val, col_ind, row_ptr, rows, nnz, vtmp, w);
+
+            // compute the Hessenberg and omega matrices
+            for (int i = 0; i < j; i++) {
+                memset(vtmp, 0, rows*sizeof(double));
+                for (int ii = 0; ii < rows; ii++) {
+                    vtmp[ii] = v[ii*(m+1)+i];
+                }
+                h[i*m+j] = vvdot(w,vtmp, rows);
+                for (int ii = 0; ii < rows; ii++) {
+                    w[ii] = w[ii]-h[i*m+j]*vtmp[ii];
+                }
+            }
+            h[(j+1)*m+j] = norm2(w, rows);
+
+            // get the new Krylov vector
+            for (int i = 0; i < rows; i++) {
+                v[i*(m+1)+(j+1)] = w[i]/h[(j+1)*m+j];
+//                printf("%1.16f\n", w[i]);
+            }
+
+            // Givens rotation
+            r[0*m+j] = h[0*m+j];
+            for (int k = 1; k < j; k++) {
+                tempr = c[k-1]*r[(k-1)*m+j]+s[k-1]*h[k*m+j];
+                r[k*m+j] = -s[k-1]*r[(k-1)*m+j]+c[k-1]*h[k*m+j];
+                r[(k-1)*m+j] = tempr;
+            }
+
+            // solve the least-squares problem with Givens rotations
+            tempsqrt = sqrt(r[j*m+j]*r[j*m+j]+h[(j+1)*m+j]*h[(j+1)*m+j]);
+            c[j] = r[j*m+j]/tempsqrt;
+            s[j] = h[(j+1)*m+j]/tempsqrt;
+            r[j*m+j] = c[j]*r[j*m+j]+s[j]*h[(j+1)*m+j];
             g[j+1] = -s[j]*g[j];
             g[j] = c[j]*g[j];
-    
-            // convergence check
-            rho = fabs(g[j+1]);
-            printf("%d %f\n", j, rho);
-    //        if (rho <= 1e-08) {
-    //            j_exit = j;
-    //            break;
-    //        }
-        }
-        rho = 1e-09;
-    }
+printf("%d\t%1.16f\n", j,  fabs(g[j+1]));
+        } // inner loop
 
-//
-//    // xm = x0 + Vm(Rm^-1gm)
-//    double *irg = malloc(m*sizeof(double));
-//    if (irg == NULL) {
-//        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-//        exit(errno);
-//    }
-//    for (int i = j_exit-1; i >= 0; i--) {
-//        irg[i] = g[i];
-//        for (int k = i+1; k < j_exit; k++) {
-//            irg[i] = irg[i] - rm[i*m+k]*irg[k];
+//        // inverse of upper Hessenberg matrix * g
+//        for (int i = m-1; i >= 0; i--) {
+//            irg[i] = g[i];
+//            for (int k = i+1; k < m; k++) {
+//                irg[i] = irg[i]-r[i*m+k]*irg[k];
+//            }
+//            irg[i] = irg[i]/r[i*m+i];
 //        }
-//        irg[i] = irg[i]/rm[i*m+i];
-//    }
 //
-//    // new x vector
+//        // calculate the new x vector
+//        for (int i = 0; i < rows; i++) {
+//            tempsum = 0;
+//            memset(vtmp, 0, rows*sizeof(double));
+//            for (int j = 0; j < rows; j++) {
+//                vtmp[j] = v[i*rows+j];
+//                tempsum = vvdot(vtmp, irg, rows);
+//            }
+//            xvec[i] = xvec[i]+tempsum;
+//        }
+    } // outer loop
+
 //    for (int i = 0; i < rows; i++) {
-//        for (int j = 0; j < m; j++) {
-//            xvec[i] += v[i*(m+1)+j]*irg[j];
-//        }
+//      printf("%f\n", xvec[i]);
 //    }
-//
+
     // deallocate
-    free(r);
+    free(r0);
     free(ax0);
     free(v);
-    free(g);
     free(h);
-    free(rm);
+    free(w);
+    free(vtmp);
     free(c);
     free(s);
-//    free(irg);
-//
-//    return rho_loc;
+    free(r);
+    free(g);
+    free(irg);
 }
 
-void getkrylov(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
-               int j, double *v, double *h, int m) {
-
-    // temporary v vector from V
-    double *vcurrent = malloc(rows*sizeof(double));
-    if (vcurrent == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
+// solves y = Ax
+ void mvmul(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
+            double *vec, double *out) {
+    int start, end;
+    double tempproduct;
     for (int i = 0; i < rows; i++) {
-        vcurrent[i] = v[i*(m+1)+j];
-    }
-
-    // w = Avj
-    double *w = malloc(rows*sizeof(double));
-    if (w == NULL) {
-        fprintf(stderr, "(-) Could not allocate memory for GMRES.\n");
-        exit(errno);
-    }
-    mvmul(w, val, col_ind, row_ptr, rows, nnz, vcurrent);
-
-    // loop to get the Hessenberg matrix
-    for (int i = 0; i <= j; i++) {
-        for (int k = 0; k < rows; k++) {
-            h[i*m+j] = h[i*m+j]+ w[k]*v[k*(m+1)+i];
+        start = row_ptr[i];
+        if (i+1 < rows) {
+            end = row_ptr[i+1];
+        } else {
+            end = nnz;
         }
-        for (int k = 0; k < rows; k++) {
-            w[k] = w[k]-h[i*m+j]*v[k*(m+1)+i];
+        tempproduct = 0.0;
+        for (int j = start; j < end; j++) {
+            tempproduct += val[j]*vec[col_ind[j]];
         }
+        out[i] = tempproduct;
     }
+}
 
-    // h_j+1,j = norm(w)
+// solves dot(v1,v2)
+double vvdot(double *v1, double *v2, int rows) {
+    double tempproduct = 0.0;
+    for (int i = rows; i < rows; i++) {
+        tempproduct += v1[i]*v2[i];
+    }
+    return tempproduct;
+}
+
+// 2-norm of a vector
+double norm2(double *val, int rows) {
     double norm = 0.0;
     for (int i = 0; i < rows; i++) {
-        norm += w[i]*w[i];
+        norm += val[i]*val[i];
     }
     norm = sqrt(norm);
-    h[(j+1)*m+j] = norm;
-
-    // v_j+1 = w/h_j+1,j
-    for (int k = 0; k < rows; k++) {
-        v[k*(m+1)+(j+1)] = w[k]/h[(j+1)*m+j];
-    }
-    
-    free(vcurrent);
-    free(w);
-}
-
-void mvmul(double *out, double *val, int *col_ind, int *row_ptr, int rows,
-           int nnz, double *vec) {
-    int r1, r2;
-    double tmp;
-    for (int i = 0; i < rows; i++) {
-        r1 = row_ptr[i];
-        if (i+1 < rows) {
-            r2 = row_ptr[i+1];
-        } else {
-            r2 = nnz;
-        }
-        tmp = 0.0;
-        for (int j = r1; j < r2; j++) {
-            tmp += val[j]*vec[col_ind[j]];
-        }
-        out[i] = tmp;
-    }
+    return norm;
 }
