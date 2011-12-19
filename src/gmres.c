@@ -3,56 +3,63 @@
  */
 
 #include <stdlib.h>
-//#include <string.h>
 #include <math.h>
 #include "gmres.h"
 
+#include "stdio.h"
+
 double gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
              double *bvec, double *xvec) {
+
+    int m = 10; // restart parameter
 
     // r0 = b - Ax0
     double *r   = malloc(rows*sizeof(double));
     double *ax0 = malloc(rows*sizeof(double));
     mvmul(ax0, val, col_ind, row_ptr, rows, nnz, xvec);
-    vvsub(r, bvec, ax0, rows);
+    for (int i = 0; i < rows; i++) {
+        r[i] = bvec[i]-ax0[i];
+    }
 
     // v1 = r0/norm(r0)
     double **v = malloc(rows*sizeof(double));
     for (int i = 0; i < rows; i++) {
         v[i] = malloc((rows+1)*sizeof(double));
     }
-    double norm = norm2(r,r);
+    double norm = 0.0;
+    for (int i = 0; i < rows; i++) {
+        norm += r[i]*r[i];
+    }
+    norm = sqrt(norm);
     for (int i = 0; i < rows; i++) {
         v[i][0] = r[i]/norm;
     }
 
     // g = norm(r)*e1
-    double *g = malloc((rows+1)*sizeof(double));
+    double *g = malloc((m+1)*sizeof(double));
     g[0] = norm;
-    for (int i = 1; i < rows+1; i++) {
+    for (int i = 1; i < m+1; i++) {
         g[i] = 0;
     }
 
     // outer loop allocation
-    double **h = malloc((rows+1)*sizeof(double));
-    double **rm = malloc(rows*sizeof(double));
-    for (int i = 0; i < rows+1; i++) {
-        h[i] = malloc((rows+1)*sizeof(double));
+    double **h = malloc((m+1)*sizeof(double));
+    double **rm = malloc(m*sizeof(double));
+    for (int i = 0; i <= m; i++) {
+        h[i] = malloc((m+1)*sizeof(double));
     }
-    for (int i = 0; i < rows+1; i++) {
-        rm[i] = malloc((rows+1)*sizeof(double));
+    for (int i = 0; i < m; i++) {
+        rm[i] = malloc((m+1)*sizeof(double));
     }
     double tempout;
-    double rho = 1, eps = 1e-08;
-    int j_exit;
 
     // inner loop allocation
-    double *c = malloc((rows+1)*sizeof(double));
-    double *s = malloc((rows+1)*sizeof(double));
+    double *c = malloc((m+1)*sizeof(double));
+    double *s = malloc((m+1)*sizeof(double));
     double tempin;
 
     // outer loop
-    for (int j = 0; j < rows; j++) {
+    for (int j = 0; j < m; j++) {
         getkrylov(val, col_ind, row_ptr, rows, nnz, j, v, h);
         rm[0][j] = h[0][j];
 
@@ -71,46 +78,52 @@ double gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
         g[j+1] = -s[j]*g[j];
         g[j] = c[j]*g[j];
 
-        // exit condition
-        rho = fabs(g[j+1]);
-        if (rho <= eps) {
-            j_exit = j;
-            break;
-        }
+    }
+
+    // residual
+    double rho = fabs(g[m]);
+    for (int i = 0; i <= m; i++) {
+        printf("%f\n", fabs(g[i]));
     }
 
     // xm = x0 + Vm(Rm^-1gm)
-    double *irg = malloc(rows*sizeof(double));
-    for (int i = j_exit-1; i >= 0; i--) {
+    double *irg = malloc(m*sizeof(double));
+    for (int i = 9-1; i >= 0; i--) {
         irg[i] = g[i];
-        for (int k = i+1; k < j_exit; k++) {
+        for (int k = i+1; k < 9; k++) {
             irg[i] = irg[i] - rm[i][k]*irg[k];
         }
         irg[i] = irg[i]/rm[i][i];
     }
 
     // new x vector
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < rows; j++) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < m; j++) {
             xvec[i] += v[i][j]*irg[j];
         }
     }
 
     // deallocate
-    for (int i = 0; i < rows; i++) {
-        free(rm[i]);
-//        free(h[i]);
-    }
-//    free(rm);
     free(r);
     free(ax0);
+    for (int i = 0; i < rows; i++) {
+        free(v[i]);
+    }
     free(v);
     free(g);
+    for (int i = 0; i <= m; i++) {
+        free(h[i]);
+    }
     free(h);
+    for (int i = 0; i < m; i++) {
+        free(rm[i]);
+    }
+    free(rm);
     free(c);
     free(s);
-//    free(irg);
+    free(irg);
 
+    printf("%f\n", rho);
     return rho;
 }
 
@@ -138,7 +151,11 @@ void getkrylov(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
     }
 
     // h_j+1,j = norm(w)
-    double norm = norm2(w,w,rows);
+    double norm = 0.0;
+    for (int i = 0; i < rows; i++) {
+        norm += w[i]*w[i];
+    }
+    norm = sqrt(norm);
     h[j+1][j] = norm;
 
     // v_j+1 = w/h_j+1,j
@@ -166,31 +183,5 @@ void mvmul(double *out, double *val, int *col_ind, int *row_ptr, int rows,
             tmp += val[j]*vec[col_ind[j]];
         }
         out[i] = tmp;
-    }
-}
-
-double vvmul(double *vect1, double *vect2, int rows) {
-             double out = 0.0;
-    for (int i = 0; i < rows; i++) {
-        out += vect1[i]*vect2[i];
-    }
-    return out;
-}
-
-double norm2(double *vect1, double *vect2, int rows) {
-             double out;
-    out = sqrt(vvmul(vect1, vect2, rows));
-    return out;
-}
-
-void vvsub(double *out, double *vect1, double *vect2, int rows) {
-    for (int i = 0; i < rows; i++) {
-        out[i] = vect1[i]-vect2[i];
-    }
-}
-
-void vsmul(double *out, double *vec, double scaler, int rows) {
-    for (int i = 0; i < rows; i++) {
-        out[i] = vec[i]*scaler;
     }
 }
