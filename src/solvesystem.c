@@ -23,10 +23,10 @@ void solvesystem(meshinfo minf, solverinfo sinf,
 
     // call solver
     int nnz = (minf.nn-2)*3+4;
-    gmres(aval, aind, aptr, minf.nn, nnz, bvec, xvec, 2, 10, 0.01);
+    gmres(aval, aind, aptr, minf.nn, nnz, bvec, xvec, 2, 2, 0.01);
 
-for (int i = 0; i < minf.nn; i++) {
-    printf("%d %f\n", i, xvec[i]);
-}
+//for (int i = 0; i < minf.nn; i++) {
+//    printf("%d %f\n", i, xvec[i]);
+//}
 
 }

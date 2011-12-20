@@ -30,7 +30,7 @@ void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
 
     // outer GMRES loop
     for (int outer = 0; outer < max; outer++) {
-
+//memset(v, 0, rows*(m+1)*sizeof(double));
         // r0 = b - Ax0
         mvmul(val, col_ind, row_ptr, rows, nnz, xvec, ax0);
 
@@ -40,6 +40,7 @@ void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
 
         // beta = norm(r0)
         beta = norm2(r0, rows);
+//        printf("%d\t%f\n", outer, beta);
 
         // v1 = r0/beta
         for (int i = 0; i < rows; i++) {
@@ -76,10 +77,11 @@ void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
             h[(j+1)*m+j] = norm2(w, rows);
 
             // get the new Krylov vector
-            for (int i = 0; i < rows; i++) {
+            for (int i = 0; i <= rows; i++) {
                 v[i*(m+1)+(j+1)] = w[i]/h[(j+1)*m+j];
 //                printf("%1.16f\n", w[i]);
             }
+        for (int i = 0; i < rows*(m+1); i++) printf("%d\t%d\t%f\n", outer, i, v[i]);
 
             // Givens rotation
             r[0*m+j] = h[0*m+j];
@@ -96,32 +98,32 @@ void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
             r[j*m+j] = c[j]*r[j*m+j]+s[j]*h[(j+1)*m+j];
             g[j+1] = -s[j]*g[j];
             g[j] = c[j]*g[j];
-printf("%d\t%1.16f\n", j,  fabs(g[j+1]));
+//printf("%d\t%1.16f\n", j,  fabs(g[j+1]));
         } // inner loop
 
         // inverse of upper Hessenberg matrix * g
-        for (int i = m-1; i >= 0; i--) {
-            irg[i] = g[i];
-            for (int k = i+1; k < m; k++) {
-                irg[i] = irg[i]-r[i*m+k]*irg[k];
-            }
-            irg[i] = irg[i]/r[i*m+i];
-        }
-
-        // calculate the new x vector
-        for (int i = 0; i < rows; i++) {
-            tempsum = 0;
-            memset(vtmp, 0, rows*sizeof(double));
-            for (int j = 0; j < rows; j++) {
-                vtmp[j] = v[j*(m+1)+i];
-            }
-            tempsum = vvdot(vtmp, irg, rows);
-            xvec[i] = xvec[i]+tempsum;
-        }
+//        for (int i = m-1; i >= 0; i--) {
+//            irg[i] = g[i];
+//            for (int k = i+1; k < m; k++) {
+//                irg[i] = irg[i]-r[i*m+k]*irg[k];
+//            }
+//            irg[i] = irg[i]/r[i*m+i];
+//        }
+//
+//        // calculate the new x vector
+//        for (int i = 0; i < rows; i++) {
+//            tempsum = 0;
+//            memset(vtmp, 0, rows*sizeof(double));
+//            for (int j = 0; j < rows; j++) {
+//                vtmp[j] = v[j*(m+1)+i];
+//            }
+//            tempsum = vvdot(vtmp, irg, rows);
+//            xvec[i] = xvec[i]+tempsum;
+//        }
     } // outer loop
 
     for (int i = 0; i < rows; i++) {
-      printf("%f\n", xvec[i]);
+//      printf("%f\n", xvec[i]);
     }
 
     // deallocate
