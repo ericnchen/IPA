@@ -99,30 +99,30 @@ void gmres(double *val, int *col_ind, int *row_ptr, int rows, int nnz,
 printf("%d\t%1.16f\n", j,  fabs(g[j+1]));
         } // inner loop
 
-//        // inverse of upper Hessenberg matrix * g
-//        for (int i = m-1; i >= 0; i--) {
-//            irg[i] = g[i];
-//            for (int k = i+1; k < m; k++) {
-//                irg[i] = irg[i]-r[i*m+k]*irg[k];
-//            }
-//            irg[i] = irg[i]/r[i*m+i];
-//        }
-//
-//        // calculate the new x vector
-//        for (int i = 0; i < rows; i++) {
-//            tempsum = 0;
-//            memset(vtmp, 0, rows*sizeof(double));
-//            for (int j = 0; j < rows; j++) {
-//                vtmp[j] = v[i*rows+j];
-//                tempsum = vvdot(vtmp, irg, rows);
-//            }
-//            xvec[i] = xvec[i]+tempsum;
-//        }
+        // inverse of upper Hessenberg matrix * g
+        for (int i = m-1; i >= 0; i--) {
+            irg[i] = g[i];
+            for (int k = i+1; k < m; k++) {
+                irg[i] = irg[i]-r[i*m+k]*irg[k];
+            }
+            irg[i] = irg[i]/r[i*m+i];
+        }
+
+        // calculate the new x vector
+        for (int i = 0; i < rows; i++) {
+            tempsum = 0;
+            memset(vtmp, 0, rows*sizeof(double));
+            for (int j = 0; j < rows; j++) {
+                vtmp[j] = v[j*(m+1)+i];
+            }
+            tempsum = vvdot(vtmp, irg, rows);
+            xvec[i] = xvec[i]+tempsum;
+        }
     } // outer loop
 
-//    for (int i = 0; i < rows; i++) {
-//      printf("%f\n", xvec[i]);
-//    }
+    for (int i = 0; i < rows; i++) {
+      printf("%f\n", xvec[i]);
+    }
 
     // deallocate
     free(r0);
