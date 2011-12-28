@@ -15,6 +15,8 @@
 #include "inputparser.h"
 
 void InputParser::parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,
+                        std::string &mxyz,
+                        std::string &mien, std::string &mrng,
                         double &a, double &nu,
                         int &nts, int &nouter, int &ninner) {
     std::ifstream input_file("ipa.in");
@@ -32,6 +34,10 @@ void InputParser::parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,
             else if (key == "nen") nen = atoi(token.c_str());
             else if (key == "nsd") nsd = atoi(token.c_str());
             else if (key == "ndf") ndf = atoi(token.c_str());
+            // mesh files
+            else if (key == "mxyz") mxyz = token;
+            else if (key == "mien") mien = token;
+            else if (key == "mrng") mrng = token;
             // fluid parameters
             else if (key == "convective_velocity") a = atof(token.c_str());
             else if (key == "viscosity") nu = atof(token.c_str());
@@ -46,7 +52,7 @@ void InputParser::parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,
     }
 }
 
-void InputParser::sanityCheck(int ne, int nn, int nen, int nsd) {
+void InputParser::checkMeshParameters(int ne, int nn, int nen, int nsd) {
     if (nsd == 1) {
         if (nn != ne+1) {
             std::cerr << "(-) ERROR: Incorrect nn for 1D!" << std::endl;
@@ -63,6 +69,22 @@ void InputParser::sanityCheck(int ne, int nn, int nen, int nsd) {
     }
     else {
         std::cerr << "(-) ERROR: Unsupported nsd!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void InputParser::checkMeshFiles(std::string mxyz, std::string mien,
+                                 std::string mrng) {
+    if (mxyz == "") {
+        std::cerr << "(-) ERROR: No mxyz file specified!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if (mrng == "") {
+        std::cerr << "(-) ERROR: No mrng file specified!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if (mrng == "") {
+        std::cerr << "(-) ERROR: No mrng file specified!" << std::endl;
         exit(EXIT_FAILURE);
     }
 }
