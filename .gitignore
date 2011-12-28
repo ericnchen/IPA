@@ -1,6 +1,2 @@
-ipa
-*.dSYM
-*.o
-.DS_Store
-doc
-a.out
+bin/ipa
+obj/*o
