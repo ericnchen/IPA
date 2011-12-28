@@ -16,9 +16,9 @@ void GMRES(vector<double> &val,
 
     // allocate
     double beta;
-    double tempr, tempsqrt;
+    double tempr, tempsqrt, tempsum;
     vector<double> ax0(rows), r0(rows), vtemp(rows), w(rows);
-    vector<double> c(m), s(m);
+    vector<double> c(m), s(m), irg(m);
     vector<double> g(m+1);
     vector<vector<double> > v(rows, vector<double>(m+1,0));
     vector<vector<double> > h(m+1, vector<double>(m));
@@ -87,6 +87,26 @@ void GMRES(vector<double> &val,
             g[j+1] = -s[j]*g[j];
 cout << fabs(g[j+1]) << endl;
             g[j] = c[j]*g[j];
+        } // inner loop
+
+        // inverse of upper Hessenberg matrix *g
+        for (int i = m-1; i >= 0; i--) {
+            irg[i] = g[i];
+            for (int k = i+1; k < m; k++) {
+                irg[i] = irg[i]-r[i][k]*irg[k];
+            }
+            irg[i] = irg[i]/r[i][i];
+        }
+
+        // calculate the new x vector
+        for (int i = 0; i < rows; i++) {
+            tempsum = 0;
+            fill(vtemp.begin(), vtemp.end(), 0);
+            for (int j = 0; j < rows; j++) {
+                vtemp[j] = v[j][i];
+            }
+            tempsum = vvdot(vtemp, irg, rows);
+            xvec[i] = xvec[i]+tempsum;
         }
 
     }

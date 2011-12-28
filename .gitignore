@@ -1,5 +1,6 @@
 ipa
-ipa.dSYM
-obj/*.o
+*.dSYM
+*.o
 .DS_Store
 doc
+a.out

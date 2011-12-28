@@ -1,2 +1,3 @@
-IPA*, the Incompressible Problem Analyzer, a Finite Element Method (FEM)
-based solver for fluid flows.
+IPA* is a finite element based flow solver for incompressible flows.
+
+Released under the MIT License, see included LICENSE file for more info.

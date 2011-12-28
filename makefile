@@ -1,16 +1,16 @@
 TARGET = bin/ipa
 
-CFLAGS = -Wall -pedantic -std=c99 -g -O3
-LDFLAGS = -Wall -pedantic -std=c99 -g -O3
+CXXFLAGS = -Wall -pedantic -g
+LDFLAGS = -Wall -pedantic -g
 
-SRCS := $(wildcard src/*.c)
-OBJS := $(patsubst src/%.c,obj/%.o,$(SRCS))
+SRCS := $(wildcard src/*.cpp)
+OBJS := $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
 
-obj/%.o: src/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+obj/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
