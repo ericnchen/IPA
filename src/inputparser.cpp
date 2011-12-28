@@ -11,7 +11,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <iostream>
 #include "inputparser.h"
 
 void InputParser::parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,

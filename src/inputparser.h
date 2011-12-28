@@ -12,6 +12,8 @@
 #ifndef INPUTPARSER_H 
 #define INPUTPARSER_H
 
+#include <iostream>
+
 class InputParser {
     public:
     // mesh parameters
