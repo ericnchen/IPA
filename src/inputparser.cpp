@@ -1,7 +1,7 @@
 /**
  * inputparser.cpp
  *
- * Parses the IPA* input file.
+ * Reads and parses the IPA* input file.
  *
  * Author   Eric Chen (eric@ericnchen.com)
  * Updated  28 December 2011
