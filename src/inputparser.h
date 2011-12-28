@@ -31,12 +31,14 @@ class InputParser {
     // constructor
     InputParser() {
         parse(ne, nn, nen, nsd, ndf, a, nu, nts, nouter, ninner);
+        sanityCheck(ne, nn, nen, nsd);
     }
 
     private:
     void parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,
                double &a, double &nu,
                int &nts, int &nouter, int &ninner);
+    void sanityCheck(int ne, int nn, int nen, int nsd);
 };
 
 #endif

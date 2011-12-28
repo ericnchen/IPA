@@ -45,3 +45,24 @@ void InputParser::parse(int &ne, int &nn, int &nen, int &nsd, int &ndf,
         exit(EXIT_FAILURE);
     }
 }
+
+void InputParser::sanityCheck(int ne, int nn, int nen, int nsd) {
+    if (nsd == 1) {
+        if (nn != ne+1) {
+            std::cerr << "(-) ERROR: Incorrect nn for 1D!" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if (nen != 2) {
+            std::cerr << "(-) ERROR: Incorrect nen for 1D!" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if (nsd == 2) {
+        std::cerr << "(-) ERROR: 2D not yet implemented!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else {
+        std::cerr << "(-) ERROR: Unsupported nsd!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
