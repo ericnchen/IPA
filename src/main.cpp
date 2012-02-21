@@ -11,8 +11,10 @@
 
 #include <iostream>
 #include "inputparser.h"
+#include "meshreader.h"
 
 int main(void) {
     InputParser parameters;
+    MeshReader mesh(parameters);
     return EXIT_SUCCESS;
 }
